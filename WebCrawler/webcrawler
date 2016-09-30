@@ -1,0 +1,55 @@
+#!/usr/bin/python
+import socket
+import sys
+import re
+import argparse
+import select
+
+#HTTP client settings
+PAGE_SIZE = 4096
+
+def login(host, port, username, password):
+    # url can also be /accounts/login/?next=/fakebook
+    # if without the /?next=/fakebook, it will be redirectly automatically
+    get_fakebook_login_page = "GET /accounts/login/ HTTP/1.1\r\n" + \
+                            "Host: " + host + "\r\n\r\n"
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
+    s.send((get_fakebook_login_page))
+    resp = s.recv(PAGE_SIZE)
+    #print resp
+
+    csrftoken = re.findall('csrftoken=(\w*)', resp)[0]
+    sessionid = re.findall('sessionid=(\w*)', resp)[0]
+
+    #print csrftoken
+    #print sessionid
+
+    login_request = "POST /accounts/login/ HTTP/1.1\r\n" + \
+                    "Host: {host}\r\n" + \
+                    "Content-Length: {length}\r\n" + \
+                    "Content-Type: application/x-www-form-urlencoded\r\n" + \
+                    "Cookie: csrftoken={csrftoken}; sessionid={sid}\r\n\r\n"
+    formdata = "username={username}&password={password}&csrfmiddlewaretoken={csrf}&next=/fakebook/"\
+                .format(username=username, password=password, csrf=csrftoken)
+    login_request = login_request.format(host=host, length=len(formdata), csrftoken=csrftoken, sid=sessionid)
+
+    s.send(login_request+formdata)
+    resp = s.recv(PAGE_SIZE)
+
+    print resp
+    s.close()
+
+
+if __name__ == '__main__':
+    # crawler = Crawler()
+    host = "cs5700f16.ccs.neu.edu"
+    port = 80
+    print sys.argv
+    if len(sys.argv) != 3:
+        print "Invalid password and username"
+        sys.exit()
+    username = sys.argv[1]
+    password = sys.argv[2]
+    login(host, port, username, password)

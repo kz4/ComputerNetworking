@@ -18,10 +18,6 @@ STATUS_REDIRECTION = [STATUS_REDIRECT, STATUS_FOUND]
 STATUS_CLIENT_ERROR = [STATUS_FORBIDDEN, STATUS_NOT_FOUND]
 STATUS_SERVER_ERROR = [STATUS_INTERNAL_SERVER_ERROR]
 
-# to_visit = set()
-# visited = set()
-# flags = set()
-
 class Worker(object):
     def __init__(self, host, port, i):
         self.host = host
@@ -30,6 +26,7 @@ class Worker(object):
         self.read_buffer = ''
         self.state = 0 # 0 for write, 1 for read and -1 for error
         self.target_url = None
+        self.socket = None
         self.connect()
         self.no = i
 
@@ -42,16 +39,14 @@ class Worker(object):
         try:
             print 'Entering read()' + str(self.no)
             resp = self.socket.recv(PAGE_SIZE)
-            self.read_buffer += resp
-            # print 'response in worker read:' + str(self.no)
-            # print resp
-            # print 'read_buffer:' + self.read_buffer
-            if len(resp) == 0 or self.read_buffer.endswith('\r\n\r\n') or self.read_buffer.endswith('</html>'):
+            if resp != 0: self.read_buffer += resp
+            if resp == 0 or resp == '' or self.read_buffer.endswith('\r\n\r\n') or self.read_buffer.endswith('</html>'):
                 print 'now should go to process_response' + str(self.no)
                 return self.process_response(self.read_buffer)
         except Exception as e:
             print 'exceptions in worker read:' + str(self.no)
             self.handle_error(e)
+            return set(), set(self.target_url), set()
         return set(), set(), set()
 
     def write(self, target_url, buffer):
@@ -66,16 +61,16 @@ class Worker(object):
             if not self.write_buffer:
                 self.state = 1
                 self.write_buffer = ''
+            return True
         except Exception as e:
             self.handle_error(e)
+            return False
 
     def process_response(self, resp):
         print "entering process_response" + str(self.no)
         print resp
         self.state = 0
-        flags = set()
-        to_visit = set()
-        visited = set()
+        flags, to_visit, visited = set(), set(), set()
 
         status_code = self.get_status_code(resp)
         print 'status_code:' + status_code
@@ -94,7 +89,6 @@ class Worker(object):
         print 'after getting status_code' + str(self.no)
         self.read_buffer = ''
         self.socket.close()
-
         # Reconnect, so we can use this socket again
         self.connect()
 
@@ -239,7 +233,7 @@ class MasterCrawler:
             flags, to_visit, visited = worker.read()
             self.flags |= flags
             for url in to_visit:
-                if url not in visited and '/fakebook/' in url:
+                if url not in self.visited and '/fakebook/' in url:
                     print 'url in process_read'
                     print url
                     self.to_visit.add(url)
@@ -248,18 +242,14 @@ class MasterCrawler:
             i+=1
 
     def process_write(self, writables, crawl_request):
-        i = 1
         for worker in writables:
             target_url, request = '', ''
             # Start a new worker writing task, if write buffer is empty
             if not worker.write_buffer and len(self.to_visit) > 0:
-                print 'to_visit in process_write'
-                print self.to_visit
                 target_url = self.to_visit.pop()
                 request = crawl_request.format(url = target_url)
-            worker.write(target_url, request)
-            # print 'worker in writables' + str(i)
-            i+=1
+            if not worker.write(target_url, request):
+                self.to_visit.add(target_url)
 
 def read_arguments():
     if len(sys.argv) != 3:

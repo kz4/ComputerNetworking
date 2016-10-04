@@ -11,15 +11,15 @@ Master crawler works as following:
 
 * Login:
 
-1. First GET to get the login page.
-2. First POST to login fakebook account, and records the first location to visit and the cookies for the following requests.
+&nbsp;&nbsp;1. First GET to get the login page.
+&nbsp;&nbsp;2. First POST to login fakebook account, and records the first location to visit and the cookies for the following requests.
 
 * Asynchronous Crawling Until 5 Flags All Founded:
 
-1. Select readable and writable workers list by using select() system call.
-2. Iterate readable and writable workers list separately
-3. Assign new task to idle workers.
-4. Merges the result from worker into the corresponding list.
+&nbsp;&nbsp;1. Select readable and writable workers list by using select() system call.
+&nbsp;&nbsp;2. Iterate readable and writable workers list separately
+&nbsp;&nbsp;3. Assign new task to idle workers.
+&nbsp;&nbsp;4. Merges the result from worker into the corresponding list.
 
 ### Worker
 

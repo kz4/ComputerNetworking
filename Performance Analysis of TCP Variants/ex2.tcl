@@ -98,6 +98,7 @@ set cbr [new Application/Traffic/CBR]
 $cbr set rate_ $cbrFlow
 $cbr set type_ CBR
 $cbr attach-agent $udp
+$udp set fid_ 3
 # *********************** CBR ************************
 
 
@@ -117,25 +118,27 @@ $ns connect $tcp $sink2
 set ftp [new Application/FTP]
 $ftp attach-agent $tcp
 $ftp set type_ FTP
+$tcp set fid_ 1
 # ************************ TCP ************************
 
 
 # ************************ TCP ************************
-# Create a TCP stream and attach it to node n1
+# Create a TCP stream and attach it to node n5
 set tempType Agent/
 # Concatenate the string to make agent type, e.g. Agent/TCP, Agent/TCP/Reno
 append tempType [lindex $argv 2]
-set tcp [new $tempType]
-$ns attach-agent $n5 $tcp
+set tcp2 [new $tempType]
+$ns attach-agent $n5 $tcp2
 # Create a sink at n6
 set sink3 [new Agent/TCPSink]
 $ns attach-agent $n6 $sink3
-$ns connect $tcp $sink3
+$ns connect $tcp2 $sink3
 
 # Setup a FTP over TCP connection
 set ftp2 [new Application/FTP]
-$ftp2 attach-agent $tcp
+$ftp2 attach-agent $tcp2
 $ftp2 set type_ FTP
+$tcp2 set fid_ 2
 # ************************ TCP ************************
 
 

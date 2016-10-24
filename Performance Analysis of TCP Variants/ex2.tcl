@@ -32,11 +32,11 @@ if {[lindex $argv 1] == "TCP" && [lindex $argv 2] == "TCP"} {
         append file_name Tahoe_
         append file_name [lindex [split [lindex $argv 2] /] 1]_CBR_
 } elseif {[lindex $argv 2] == "TCP"} {
-        append trace_name [lindex [split [lindex $argv 1] /] 1]_
+        append file_name [lindex [split [lindex $argv 1] /] 1]_
         append file_name Tahoe_CBR_
 } else {
-        append trace_name [lindex [split [lindex $argv 1] /] 1]_
-        append trace_name [lindex [split [lindex $argv 2] /] 1]_CBR_
+        append file_name [lindex [split [lindex $argv 1] /] 1]_
+        append file_name [lindex [split [lindex $argv 2] /] 1]_CBR_
 }
 append file_name [lindex $argv 0].tr
 set tf [open $file_name w]

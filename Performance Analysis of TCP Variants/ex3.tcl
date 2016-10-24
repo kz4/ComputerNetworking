@@ -31,8 +31,9 @@ set file_name ex3_trace/
 #         append file_name [lindex [split [lindex $argv 1] /] 1]_CBR_
 # }
 set queue [lindex $argv 1]
-append file_name [lindex [split [lindex $argv 0] /] 1]_
-append file_name $queue.tr
+set tcp_variant [lindex [split [lindex $argv 0] /] 1]
+append file_name $tcp_variant
+append file_name _$queue.tr
 set tf [open $file_name w]
 $ns trace-all $tf
 

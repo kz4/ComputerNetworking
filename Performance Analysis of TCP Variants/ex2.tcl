@@ -26,18 +26,8 @@ $ns color 2 Red
 
 # Open the trace file
 set file_name ex2_trace/
-if {[lindex $argv 1] == "TCP" && [lindex $argv 2] == "TCP"} {
-        append file_name Tahoe_Tahoe_CBR_
-} elseif {[lindex $argv 1] == "TCP"} {
-        append file_name Tahoe_
-        append file_name [lindex [split [lindex $argv 2] /] 1]_CBR_
-} elseif {[lindex $argv 2] == "TCP"} {
-        append file_name [lindex [split [lindex $argv 1] /] 1]_
-        append file_name Tahoe_CBR_
-} else {
-        append file_name [lindex [split [lindex $argv 1] /] 1]_
-        append file_name [lindex [split [lindex $argv 2] /] 1]_CBR_
-}
+append file_name [lindex [split [lindex $argv 1] /] 1]_
+append file_name [lindex [split [lindex $argv 2] /] 1]_CBR_
 append file_name [lindex $argv 0].tr
 set tf [open $file_name w]
 $ns trace-all $tf

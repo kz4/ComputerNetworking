@@ -25,11 +25,6 @@ $ns color 2 Red
 
 # Open the trace file
 set file_name ex3_trace/
-# if {[lindex $argv 1] == "TCP"} {
-#         append file_name Tahoe_CBR_
-# } else {
-#         append file_name [lindex [split [lindex $argv 1] /] 1]_CBR_
-# }
 set queue [lindex $argv 1]
 set tcp_variant [lindex [split [lindex $argv 0] /] 1]
 append file_name $tcp_variant
@@ -89,7 +84,7 @@ $ns connect $udp $sink
 # again. Keep changing the CBR's rate until it reaches the
 # bottleneck capacity.
 set cbr [new Application/Traffic/CBR]
-$cbr set rate_ 7
+$cbr set rate_ 7Mb
 $cbr set type_ CBR
 $cbr attach-agent $udp
 # *********************** CBR ************************

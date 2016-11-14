@@ -48,5 +48,8 @@ if __name__ == '__main__':
     filename = get_filename(destination_components.path)
     print 'filename: ', filename
 
-    http = Http(source_ip, destination_ip, destination_components, filename)
-    http.start()
+    http = Http(source_ip, destination_ip, destination_components)
+    data = http.start()
+
+    with open(filename, "w+") as f:
+        f.write(data)

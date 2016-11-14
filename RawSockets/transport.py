@@ -241,7 +241,7 @@ class Tcp(object):
 
         self._send(flags=ACK)
 
-    def download(self, filename):
+    def download(self):
         self.send(self.http_request)
 
         data = self.recv()
@@ -249,10 +249,7 @@ class Tcp(object):
             self.initiates_close_connection()
             sys.exit(1)
 
-        pos = data.find("\r\n\r\n")
-        if pos > -1:
-            pos += 4
-            data = data[pos:]
+        print 'data:'
+        print data
 
-        with open(filename, "w+") as f:
-            f.write(data)
+        return data

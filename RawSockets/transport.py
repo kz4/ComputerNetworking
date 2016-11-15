@@ -152,13 +152,16 @@ class Tcp(object):
         self.rsocket.settimeout(delay)
         try:
             while True:
+                print '_recv'
                 data = self.rsocket.recv(size)
                 ip_datagram = self.ip.unpack_ip_datagram(data)
                 if ip_datagram.ip_daddr != self.local_host or ip_datagram.ip_check != 0 or ip_datagram.ip_saddr != self.remote_host:
+                    print 'before ip continue'
                     continue
 
                 tcp_seg = self.unpack_tcp_segment(ip_datagram.data)
                 if tcp_seg.tcp_source != self.remote_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
+                    print 'before tcp continue'
                     continue
                 return tcp_seg
         except socket.timeout:
@@ -248,8 +251,5 @@ class Tcp(object):
         if not data.startswith("HTTP/1.1 200 OK"):
             self.initiates_close_connection()
             sys.exit(1)
-
-        print 'data:'
-        print data
 
         return data

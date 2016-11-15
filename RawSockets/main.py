@@ -39,6 +39,10 @@ def get_source_ip():
 def get_filename(path):
     return path.split('/')[-1] if path else 'index.html'
 
+def save_to_file(data, filename):
+    with open(filename, "w+") as f:
+        f.write(data)
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         sys.exit('There should be 2 arguments: ./rawhttpget [url]')
@@ -51,5 +55,4 @@ if __name__ == '__main__':
     http = Http(source_ip, destination_ip, destination_components)
     data = http.start()
 
-    with open(filename, "w+") as f:
-        f.write(data)
+    save_to_file(data, filename)

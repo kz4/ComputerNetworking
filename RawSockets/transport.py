@@ -111,7 +111,7 @@ class Tcp(object):
         data = segment[tcp_header_size:]
         # compute the checksum of the recv packet with psh
         tcp_check = self._tcp_check(segment)
-        # tcp_check = 0
+        tcp_check = 0
         return TCPSeg(tcp_seq=tcp_seq, 
             tcp_source=tcp_source, 
             tcp_dest=tcp_dest, 
@@ -156,12 +156,17 @@ class Tcp(object):
                 data = self.rsocket.recv(size)
                 ip_packet = self.ip.unpack_ip_packet(data)
                 if ip_packet.ip_daddr != self.source_ip or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.destination_ip:
-                    print 'before ip continue'
+                    print 'ip addr: ', ip_packet.ip_daddr, 'source ip: ', self.source_ip
+		    print 'ip_check: ', ip_packet.ip_check
+		    print 'ip_saddr: ', ip_packet.ip_saddr, 'dest ip: ', self.destination_ip
+
                     continue
 
                 tcp_seg = self.unpack_tcp_segment(ip_packet.data)
                 if tcp_seg.tcp_source != self.destination_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
-                    print 'before tcp continue'
+                    print 'tcp_source: ', tcp_seg.tcp_source, 'destination_port: ', self.destination_port
+		    print 'tcp_check: ', tcp_seg.tcp_check
+		    print 'tcp_dest: ', tcp_seg.tcp_dest, 'local_port: ', self.local_port
                     continue
                 return tcp_seg
         except socket.timeout:
@@ -182,19 +187,26 @@ class Tcp(object):
             if tcp_seg.tcp_flags & ACK and tcp_seg.tcp_seq not in received_segments:
                 print '1'
                 received_segments[tcp_seg.tcp_seq] = tcp_seg.data
+                print 'received segment key: ', tcp_seg.tcp_seq, ' value: ', tcp_seg.data
                 self.tcp_ack_seq = tcp_seg.tcp_seq + len(tcp_seg.data)
                 # Server wants to close connection
                 if tcp_seg.tcp_flags & FIN:
                     print '2'
                     self.reply_close_connection()
                     # Transmission is done. Server closes the connection.
+                    print 'before break'
                     break
                 else:
                     print '3'
                     self._send(flags=ACK)
 
+        print 'before reduce'
+
         sorted_segments = sorted(received_segments.items())
-        data = reduce(lambda x, y: x + y[-1], sorted_segments, '')
+	print 'sorted seg:', sorted_segments
+        # data = reduce(lambda x, y: x + y[-1], sorted_segments, '')
+	data = ''.join(v[1] for v in sorted_segments)
+        print 'after reduce'
 
         return data
 

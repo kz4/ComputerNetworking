@@ -24,7 +24,6 @@ class Http(object):
         requst.append('Connection: keep-alive\r\n')
         requst.append('\r\n')
         requst_str = ''.join(requst)
-        print 'requst_str: ', requst_str
 
         self.tcp.set_request(requst_str)
 

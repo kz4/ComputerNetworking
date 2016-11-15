@@ -1,7 +1,4 @@
 import socket
-request = "GET {url} HTTP/1.0\r\n" + \
-          "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n" + \
-          "Connection: close\r\n\r\n"
 
 def checksum(msg):
     s = 0
@@ -22,6 +19,3 @@ def checksum(msg):
     s = ~s & 0xffff
      
     return s
-
-def make_HTTP_GET(url):
-    return request.format(url=url)

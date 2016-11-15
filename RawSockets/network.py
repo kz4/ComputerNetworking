@@ -17,7 +17,7 @@ class Ip(object):
         self.local_host = local_host
         self.remote_host = remote_host
 
-    def pack_ip_datagram(self, payload):
+    def pack_ip_packet(self, payload):
         '''
         Generate IP datagram.
         `payload` is TCP segment
@@ -43,7 +43,7 @@ class Ip(object):
         return ip_header + payload
 
 
-    def unpack_ip_datagram(self, datagram):
+    def unpack_ip_packet(self, datagram):
         '''
         Parse IP datagram
         '''

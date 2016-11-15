@@ -25,9 +25,9 @@ class Tcp(object):
     def __init__(self, source_ip, destination_ip, destination_components, destination_port):
         self.ssocket = None
         self.rsocket = None
-        self.remote_host = destination_ip
-        self.remote_port = destination_port
-        self.local_host = source_ip
+        self.destination_ip = destination_ip
+        self.destination_port = destination_port
+        self.source_ip = source_ip
         self.local_port = randint(1001, 65535)
         self.send_buf = ''
         self.recv_buf = ''
@@ -54,7 +54,7 @@ class Tcp(object):
 
         # tcp header fields
         tcp_source = self.local_port   # source port
-        tcp_dest = self.remote_port   # destination port
+        tcp_dest = self.destination_port   # destination port
         tcp_seq = self.tcp_seq
         tcp_ack_seq = self.tcp_ack_seq
         tcp_doff = 5  # 4 bit field, size of tcp header, 5 * 4 = 20 bytes
@@ -67,8 +67,8 @@ class Tcp(object):
                                  tcp_ack_seq, tcp_offset_res, tcp_flags,  tcp_window, tcp_check, tcp_urg_ptr)
 
         # pseudo header fields
-        source_address = socket.inet_aton(self.local_host)
-        dest_address = socket.inet_aton(self.remote_host)
+        source_address = socket.inet_aton(self.source_ip)
+        dest_address = socket.inet_aton(self.destination_ip)
         placeholder = 0
         protocol = socket.IPPROTO_TCP
         if len(payload) % 2 != 0:
@@ -121,8 +121,8 @@ class Tcp(object):
 
     def _tcp_check(self, payload):
         # pseudo header fields
-        source_address = socket.inet_aton(self.local_host)
-        dest_address = socket.inet_aton(self.remote_host)
+        source_address = socket.inet_aton(self.source_ip)
+        dest_address = socket.inet_aton(self.destination_ip)
         placeholder = 0
         protocol = socket.IPPROTO_TCP
         tcp_length = len(payload)
@@ -136,8 +136,8 @@ class Tcp(object):
     def _send(self, data='', flags=ACK):
         self.send_buf = data
         tcp_segment = self.pack_tcp_segment(data, flags=flags)
-        ip_datagram = self.ip.pack_ip_datagram(tcp_segment)
-        self.ssocket.sendto(ip_datagram, (self.remote_host, self.remote_port))
+        ip_packet = self.ip.pack_ip_packet(tcp_segment)
+        self.ssocket.sendto(ip_packet, (self.destination_ip, self.destination_port))
 
     def send(self, data):
         self._send(data, flags=PSH_ACK)
@@ -154,13 +154,13 @@ class Tcp(object):
             while True:
                 print '_recv'
                 data = self.rsocket.recv(size)
-                ip_datagram = self.ip.unpack_ip_datagram(data)
-                if ip_datagram.ip_daddr != self.local_host or ip_datagram.ip_check != 0 or ip_datagram.ip_saddr != self.remote_host:
+                ip_packet = self.ip.unpack_ip_packet(data)
+                if ip_packet.ip_daddr != self.source_ip or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.destination_ip:
                     print 'before ip continue'
                     continue
 
-                tcp_seg = self.unpack_tcp_segment(ip_datagram.data)
-                if tcp_seg.tcp_source != self.remote_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
+                tcp_seg = self.unpack_tcp_segment(ip_packet.data)
+                if tcp_seg.tcp_source != self.destination_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
                     print 'before tcp continue'
                     continue
                 return tcp_seg

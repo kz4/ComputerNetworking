@@ -56,45 +56,6 @@ class Http(object):
         content = data.split("\r\n\r\n", 1)
         return content[1]
 
-    # def _remove_chunk_length(self, data):
-    #     if self._is_started_with_chunk_length(data):
-    #         content = self._remove_all_chunk_length(data)
-    #     else:
-    #         content = data
-        
-    #     return content
-
-    # def _is_started_with_chunk_length(self, data):
-    #     first_line = data.split('\r\n', 1)[0]
-    #     m = re.match(r'^[a-zA-Z0-9]+$', first_line)
-
-    #     # if it exists, return true, else, return false
-    #     if m is not None:
-    #         return True
-    #     if m is None:
-            # return False
-
-    # def _remove_all_chunk_length(self, data):
-    #     content = []
-    #     while True:
-    #         # Get the chunk length and rest of data respectively
-    #         first_line = data.split('\r\n', 1)[0]
-    #         rest_data = data.split('\r\n', 1)[1]
-    #         m = re.match(r'^[a-zA-Z0-9]+$', first_line)
-    #         # Find chunk, and read data according to the chunk length
-    #         if m is not None:
-    #             chunk_size = int(m.group(0), 16)
-    #             content.append(rest_data[:chunk_size])
-    #             data = rest_data[chunk_size + 2:]
-    #             # If chuck is 0, exit out of the while loop, which means we have received all the data
-    #             if chunk_size == 0:
-    #                 break
-    #         # If can not find chunk, raise exception
-    #         elif m is None:
-    #             return data
-
-    #     return ''.join(content)
-
     def _remove_chunk_length(self, data):
         content = []
         while True:

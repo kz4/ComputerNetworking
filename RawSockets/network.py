@@ -10,13 +10,13 @@ from collections import namedtuple, OrderedDict
 from util import checksum
 
 IP_HDR_FMT = '!BBHHHBBH4s4s'
-IPDatagram = namedtuple(
-    'IPDatagram', 'ip_tlen ip_id ip_frag_off ip_saddr ip_daddr data ip_check')
+IPPacket = namedtuple(
+    'IPPacket', 'ip_tlen ip_id ip_frag_off ip_saddr ip_daddr data ip_check ip_protocol')
 
 class Ip(object):
     def __init__(self, local_host, remote_host):
         self.local_host = local_host
-        self.remote_host = remote_host       
+        self.remote_host = remote_host
         self.ssocket = socket.socket(socket.AF_INET, socket.SOCK_RAW,
                                      socket.IPPROTO_RAW)
         self.rsocket = socket.socket(socket.AF_INET, socket.SOCK_RAW,
@@ -42,8 +42,9 @@ class Ip(object):
                                 ip_id, ip_frag_off, ip_ttl, ip_proto, ip_check, ip_saddr, ip_daddr)
         ip_check = checksum(ip_header)
 
-        ip_header = struct.pack(IP_HDR_FMT, ip_ihl_ver, ip_tos, ip_tot_len,
-                                ip_id, ip_frag_off, ip_ttl, ip_proto, ip_check, ip_saddr, ip_daddr)
+        ip_header = struct.pack('!BBHHHBB', ip_ihl_ver, ip_tos, ip_tot_len,
+                                ip_id, ip_frag_off, ip_ttl, ip_proto) + \
+                                struct.pack('H', ip_check) + struct.pack('!4s4s', ip_saddr, ip_daddr)
 
         return ip_header + payload
 
@@ -66,8 +67,9 @@ class Ip(object):
         data = datagram[ip_header_size:hdr_fields[2]]
         ip_check = checksum(ip_headers)
 
-        return IPDatagram(ip_daddr=socket.inet_ntoa(hdr_fields[-1]),
+        return IPPacket(ip_daddr=socket.inet_ntoa(hdr_fields[-1]),
             ip_saddr=socket.inet_ntoa(hdr_fields[-2]),
+            ip_protocol=hdr_fields[6],
             ip_frag_off=hdr_fields[4],
             ip_id=hdr_fields[3], 
             ip_tlen=hdr_fields[2], 
@@ -84,7 +86,7 @@ class Ip(object):
                 data = self.rsocket.recv(size)
 
                 ip_packet = self.unpack_ip_packet(data)
-                if ip_packet.ip_daddr != self.local_host or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.remote_host:
+                if ip_packet.ip_daddr != self.local_host or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.remote_host or ip_packet.ip_protocol != socket.IPPROTO_TCP:
                     continue
                 return ip_packet.data
         except socket.timeout:

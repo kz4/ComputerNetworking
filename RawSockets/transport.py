@@ -105,7 +105,8 @@ class Tcp(object):
         data = segment[tcp_header_size:]
         # compute the checksum of the recv packet with psh
         tcp_check = self._tcp_check(segment)
-        tcp_check = 0
+``        # tcp_check = 0
+        print 'tcp_check: ', tcp_check
         return TCPSeg(tcp_seq=tcp_seq, 
             tcp_source=tcp_source, 
             tcp_dest=tcp_dest, 
@@ -151,26 +152,6 @@ class Tcp(object):
 
         # reset send_buf
         self.send_buf = ''
-
-##    def _recv(self, size=65535, delay=60):
-##        """
-##        Receive data from next layer
-##        """
-##        self.rsocket.settimeout(delay)
-##        try:
-##            while True:
-##                data = self.rsocket.recv(size)
-##
-##                ip_packet = self.ip.unpack_ip_packet(data)
-##                if ip_packet.ip_daddr != self.source_ip or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.destination_ip:
-##                    continue
-##
-##                tcp_seg = self.unpack_tcp_segment(ip_packet.data)
-##                if tcp_seg.tcp_source != self.destination_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
-##                    continue
-##                return tcp_seg
-##        except socket.timeout:
-##            return None
 
     def _recv(self, size=65535, delay=60):
         """

@@ -44,15 +44,17 @@ def save_to_file(data, filename):
         f.write(data)
 
 if __name__ == '__main__':
+    # Parse arguments
     if len(sys.argv) != 2:
         sys.exit('There should be 2 arguments: ./rawhttpget [url]')
     url = sys.argv[1]
     destination_components, destination_ip = get_destination_components_ip(url)
     source_ip = get_source_ip()
     filename = get_filename(destination_components.path)
-    print 'filename: ', filename
 
+    # Call application layer
     http = Http(source_ip, destination_ip, destination_components)
     data = http.start()
 
+    # Save result to file
     save_to_file(data, filename)

@@ -10,6 +10,9 @@ class Http(object):
         self.tcp = Tcp(source_ip, destination_ip, destination_components, destination_port)
 
     def start(self):
+        """
+        Execute main functions in Application Layer.
+        """
         self._create_get_request()
         self.tcp.three_way_hand_shake()
         whole_file = self.tcp.download()
@@ -18,6 +21,9 @@ class Http(object):
         return updated_file
         
     def _create_get_request(self):
+        """
+        Compose the HTTP request.
+        """
         requst = []
         requst.append('GET ' + self.destination_components.path + ' HTTP/1.1\r\n')
         requst.append('Host: ' + self.destination_components.netloc + '\r\n')
@@ -28,7 +34,10 @@ class Http(object):
         self.tcp.set_request(requst_str)
 
     def _remove_header(self, data):
-        """ Sample Header
+        """
+        Remove Header from start of the data
+        
+        Sample Header:
         HTTP/1.1 200 OK
         Date: Mon, 14 Nov 2016 22:48:33 GMT
         Server: Apache/2.4.18 (Unix) OpenSSL/1.0.1e-fips mod_bwlimited/1.4 mod_fcgid/2.3.9
@@ -38,10 +47,17 @@ class Http(object):
         Transfer-Encoding: chunked
         Content-Type: text/html; charset=UTF-8
         """
+        content = data.split("\r\n\r\n", 1)
+        return content[1]
 
-        """ Header is followed by a \r\n\r\n, which is then followed by a chunk length, chunk
+    def _remove_chunk_length(self, data):
+        """
+        Remove Check Length if there is any
+        
+        Data consists of Header + Chuck Length + Corresponding chuck of data:
+
         Header
-
+        
         172b
         ...
         ...
@@ -49,13 +65,7 @@ class Http(object):
         ...
         ...
         0
-
-
         """
-        content = data.split("\r\n\r\n", 1)
-        return content[1]
-
-    def _remove_chunk_length(self, data):
         content = []
         while True:
             # Get the chunk length and rest of data respectively
@@ -67,11 +77,12 @@ class Http(object):
                 chunk_size = int(m.group(0), 16)
                 content.append(rest_data[:chunk_size])
                 data = rest_data[chunk_size + 2:]
-                # If chuck is 0, exit out of the while loop, which means we have received all the data
+                # If chuck is 0, exit out of the while loop,
+                # which means we have received all the data.
+                # return the result with chuck length dropped off.
                 if chunk_size == 0:
-                    break
-            # If can not find chunk, raise exception
+                    return ''.join(content)
+            # If can not find chunk, means there are no chuck in data
+            # return data as result
             elif m is None:
-                return data
-
-        return ''.join(content)
+                return data       

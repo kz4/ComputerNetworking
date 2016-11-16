@@ -10,9 +10,9 @@ class Http(object):
         self.tcp = Tcp(source_ip, destination_ip, destination_components, destination_port)
 
     def start(self):
-        """
+        '''
         Execute main functions in Application Layer.
-        """
+        '''
         self._create_get_request()
         self.tcp.three_way_hand_shake()
         whole_file = self.tcp.download()
@@ -21,9 +21,9 @@ class Http(object):
         return updated_file
         
     def _create_get_request(self):
-        """
+        '''
         Compose the HTTP request.
-        """
+        '''
         requst = []
         requst.append('GET ' + self.destination_components.path + ' HTTP/1.1\r\n')
         requst.append('Host: ' + self.destination_components.netloc + '\r\n')
@@ -34,7 +34,7 @@ class Http(object):
         self.tcp.set_request(requst_str)
 
     def _remove_header(self, data):
-        """
+        '''
         Remove Header from start of the data
         
         Sample Header:
@@ -46,12 +46,12 @@ class Http(object):
         Connection: Keep-Alive
         Transfer-Encoding: chunked
         Content-Type: text/html; charset=UTF-8
-        """
+        '''
         content = data.split("\r\n\r\n", 1)
         return content[1]
 
     def _remove_chunk_length(self, data):
-        """
+        '''
         Remove Check Length if there is any
         
         Data consists of Header + Chuck Length + Corresponding chuck of data:
@@ -65,7 +65,7 @@ class Http(object):
         ...
         ...
         0
-        """
+        '''
         content = []
         while True:
             # Get the chunk length and rest of data respectively

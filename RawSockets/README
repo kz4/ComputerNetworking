@@ -1,3 +1,6 @@
+Extra credit has been implemented
+The network interface on our machine is eno16777736, but I noticed most of other network interface is eth0
+
 High Level Approach:
 In this project, the goal is to implement low-level operations of the Internet protocol stack with our own OSI model, which includes Application Layer, Transport Layer and Network Layer. The program is run by
 sudo ./rawhttpget [url]
@@ -60,9 +63,16 @@ close
 =====================================
 
 ^
-
              | (api)
+Datalink:          => ARP the gateway MAC address by its ip, send ethernet packet,
+send, recv                  receive ethernet packet
+=====================================
 
+|datalink(datalink.py)   EtherPacket|
+
+=====================================
+             | (api)
+^
 
 AF_PACKET, RAW_SOCK      => basic data sending and receiving
 
@@ -88,5 +98,8 @@ Challenges:
 4) When downloading a web page, in the beginning, we did not realize the chunk length needs to be removed and thought we had some logic error in the code. Then we figured out, instead of writing the whole file out, we should read each part up to the chuck length and keeps repeating
 5) When calculating the check sum, initially, we didn't have the pseudo-header, so the check sum logic was not correct
 6) There might be option fields in TCP and IP headers. We have to discover them and remove them
-
+7) The checksum of TCP during recv is not correct. It turned out to be the TCP checksum offloading. We fixed it by running
+ sudo ethtool --offload [ethernet device name] rx off tx off
+ sudo ethtool -K [ethernet device name] gso off
+ sudo ethtool -K [ethernet device name] gro off
 

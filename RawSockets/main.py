@@ -19,6 +19,7 @@ def get_destination_components_ip(url):
 
         # Get destination IP
         destination_ip = socket.gethostbyname(components.netloc)
+        print 'components:', components
         return components, destination_ip
     except Exception, e:
         print e, "Program exit."
@@ -37,7 +38,8 @@ def get_source_ip():
         sys.exit(1)
 
 def get_filename(path):
-    return path.split('/')[-1] if path else 'index.html'
+    print path.split('/')
+    return path.split('/')[-1] or 'index.html'
 
 def save_to_file(data, filename):
     with open(filename, "w+") as f:

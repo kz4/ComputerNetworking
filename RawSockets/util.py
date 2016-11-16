@@ -1,21 +1,15 @@
 import socket
+import array
 
-def checksum(msg):
-    s = 0
-    
-    # loop taking 2 characters at a time
-    for i in range(0, len(msg), 2):
-        if i+1 <= len(msg)-1: 
-            w = ord(msg[i]) + (ord(msg[i+1]) << 8 ) 
-        else: 
-            w = ord(msg[i]) 
-
-        s = s + w
-     
-    s = (s>>16) + (s & 0xffff);
-    s = s + (s >> 16);
-
-    #complement and mask to 4 byte short
-    s = ~s & 0xffff
-     
-    return s
+def checksum(s):
+    if len(s) & 1:
+    	s = s + '\0'
+    words = array.array('h', s)
+    sum = 0
+    for word in words:
+    	sum = sum + (word & 0xffff)
+    hi = sum >> 16
+    lo = sum & 0xffff
+    sum = hi + lo
+    sum = sum + (sum >> 16)
+    return (~sum) & 0xffff

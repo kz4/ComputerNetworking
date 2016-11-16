@@ -99,7 +99,9 @@ class Tcp(object):
         tcp_doff_resvd = hdr_fields[4]
         tcp_doff = tcp_doff_resvd >> 4  # get the data offset
         tcp_adwind = hdr_fields[6]
-        tcp_urg_ptr = hdr_fields[7]
+        old_tcp_check = hdr_fields[7]
+        print 'old_tcp_check', old_tcp_check
+        tcp_urg_ptr = hdr_fields[8]
         # parse TCP flags
         tcp_flags = hdr_fields[5]
         # process the TCP options if there are
@@ -129,7 +131,8 @@ class Tcp(object):
 
         psh = struct.pack(PSH_FMT, source_address, dest_address,
                           placeholder, protocol, tcp_length)
-        psh = psh + payload
+        check_payload = payload[:16] + struct.pack('H', 0) + payload[18:]
+        psh = psh + check_payload
 
         return checksum(psh)
 

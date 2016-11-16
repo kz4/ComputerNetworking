@@ -1,9 +1,78 @@
-gh Level Approach:
+High Level Approach:
 In this project, the goal is to implement low-level operations of the Internet protocol stack with our own OSI model, which includes Application Layer, Transport Layer and Network Layer. The program is run by
 sudo ./rawhttpget [url]
 and the url will be downloaded using the raw socket we created.
 
 The program starts from the main file, and then propagates to the Application Layer, which calls the TCP Layer, which in turn calls the IP Layer. After we get all the packet on the IP layer, we return it in the opposite order of how it first propagates down.
+
+The following figure shows the layer structure and all functions implmented in each layer:
+
+=====================================
+
+|./rawhttpget url                   |
+
+=====================================
+
+             ^
+
+             | (api)
+
+Http:                    => HTTP get request, parse the url, 
+
+download                   remove header, remove chuck length, save files
+
+=====================================
+
+|application(application.py) Http(String)  |
+
+=====================================
+
+             ^
+
+             | (api)
+
+Tcp:    	          => three way handshake, send tcp packet, receive tcp packet
+
+send, recv, connect,    time out, congestion control, out-order packet dealing
+
+close                       retransmission, TCP packet checksum validation
+
+=====================================
+
+|transport(transport.py) TcpPacket  |    
+
+=====================================
+
+^
+
+             | (api)
+
+Ip:                => send ip packet, receive ip packet, filter the packet by 
+
+send, recv                  packet type, IP packet checksum validation
+
+close
+
+=====================================
+
+|network(network.py)     IpPacket   |
+
+=====================================
+
+^
+
+             | (api)
+
+
+AF_PACKET, RAW_SOCK      => basic data sending and receiving
+
+sendto, recvfrom
+
+=====================================
+
+|  OS(linux)	            |
+
+=====================================
 
 Features Implemented:
 TCP:

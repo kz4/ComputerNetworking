@@ -3,6 +3,7 @@ import sys
 import socket
 import struct
 import time
+import socket
 
 from random import randint
 from collections import namedtuple, OrderedDict
@@ -15,7 +16,11 @@ IPDatagram = namedtuple(
 class Ip(object):
     def __init__(self, local_host, remote_host):
         self.local_host = local_host
-        self.remote_host = remote_host
+        self.remote_host = remote_host       
+        self.ssocket = socket.socket(socket.AF_INET, socket.SOCK_RAW,
+                                     socket.IPPROTO_RAW)
+        self.rsocket = socket.socket(socket.AF_INET, socket.SOCK_RAW,
+                                     socket.IPPROTO_TCP)
 
     def pack_ip_packet(self, payload):
         '''
@@ -67,3 +72,24 @@ class Ip(object):
             ip_id=hdr_fields[3], 
             ip_tlen=hdr_fields[2], 
             ip_check=ip_check, data=data)
+
+    def send(self, tcp_segment, destination_info):
+        ip_packet = self.pack_ip_packet(tcp_segment)
+        self.ssocket.sendto(ip_packet, destination_info)
+
+    def recv(self, size, delay):
+        self.rsocket.settimeout(delay)
+        try:
+            while True:
+                data = self.rsocket.recv(size)
+
+                ip_packet = self.unpack_ip_packet(data)
+                if ip_packet.ip_daddr != self.local_host or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.remote_host:
+                    continue
+                return ip_packet.data
+        except socket.timeout:
+            return None       
+
+    def close_all(self):
+        self.ssocket.close()
+        self.rsocket.close()

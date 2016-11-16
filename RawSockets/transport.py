@@ -24,8 +24,6 @@ TCPSeg = namedtuple(
 
 class Tcp(object):
     def __init__(self, source_ip, destination_ip, destination_components, destination_port):
-        self.ssocket = None
-        self.rsocket = None
         self.destination_ip = destination_ip
         self.destination_port = destination_port
         self.source_ip = source_ip
@@ -39,11 +37,6 @@ class Tcp(object):
         self.adwind_size = 2048
         self.ip = Ip(source_ip, destination_ip)
         self.http_request = ''
-
-        self.ssocket = socket.socket(socket.AF_INET, socket.SOCK_RAW,
-                                     socket.IPPROTO_RAW)
-        self.rsocket = socket.socket(socket.AF_INET, socket.SOCK_RAW,
-                                     socket.IPPROTO_TCP)
         
     def set_request(self, requst_str):
         self.http_request = requst_str
@@ -143,8 +136,9 @@ class Tcp(object):
         """
         self.send_buf = data
         tcp_segment = self.pack_tcp_segment(data, flags=flags)
-        ip_packet = self.ip.pack_ip_packet(tcp_segment)
-        self.ssocket.sendto(ip_packet, (self.destination_ip, self.destination_port))
+        # ip_packet = self.ip.pack_ip_packet(tcp_segment)
+        # self.ssocket.sendto(ip_packet, (self.destination_ip, self.destination_port))
+        self.ip.send(tcp_segment, (self.destination_ip, self.destination_port))
 
     def send(self, data):
         """
@@ -158,25 +152,40 @@ class Tcp(object):
         # reset send_buf
         self.send_buf = ''
 
+##    def _recv(self, size=65535, delay=60):
+##        """
+##        Receive data from next layer
+##        """
+##        self.rsocket.settimeout(delay)
+##        try:
+##            while True:
+##                data = self.rsocket.recv(size)
+##
+##                ip_packet = self.ip.unpack_ip_packet(data)
+##                if ip_packet.ip_daddr != self.source_ip or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.destination_ip:
+##                    continue
+##
+##                tcp_seg = self.unpack_tcp_segment(ip_packet.data)
+##                if tcp_seg.tcp_source != self.destination_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
+##                    continue
+##                return tcp_seg
+##        except socket.timeout:
+##            return None
+
     def _recv(self, size=65535, delay=60):
         """
         Receive data from next layer
         """
-        self.rsocket.settimeout(delay)
-        try:
-            while True:
-                data = self.rsocket.recv(size)
-
-                ip_packet = self.ip.unpack_ip_packet(data)
-                if ip_packet.ip_daddr != self.source_ip or ip_packet.ip_check != 0 or ip_packet.ip_saddr != self.destination_ip:
-                    continue
-
-                tcp_seg = self.unpack_tcp_segment(ip_packet.data)
-                if tcp_seg.tcp_source != self.destination_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
-                    continue
-                return tcp_seg
-        except socket.timeout:
-            return None
+        start = time.time()
+        while time.time() - start < 60:
+            ip_packet_data = self.ip.recv(size, delay)
+            if not ip_packet_data:
+                continue
+            tcp_seg = self.unpack_tcp_segment(ip_packet_data)
+            if tcp_seg.tcp_source != self.destination_port or tcp_seg.tcp_dest != self.local_port or tcp_seg.tcp_check != 0:
+                continue
+            return tcp_seg
+        return None
 
     def recv(self):
         """
@@ -236,8 +245,7 @@ class Tcp(object):
             sys.exit(1)
 
         self._send(flags=ACK)
-        self.ssocket.close()
-        self.rsocket.close()
+        self.ip.close_all()
 
     def reply_close_connection(self):
         """
@@ -246,8 +254,7 @@ class Tcp(object):
         self.tcp_ack_seq += 1
         self._send(flags=FIN_ACK)
         tcp_seg = self.recv_ack(offset=1)
-        self.ssocket.close()
-        self.rsocket.close()
+        self.ip.close_all()
 
     def three_way_hand_shake(self):
         """

@@ -105,7 +105,7 @@ class Tcp(object):
         data = segment[tcp_header_size:]
         # compute the checksum of the recv packet with psh
         tcp_check = self._tcp_check(segment)
-        # tcp_check = 0
+        tcp_check = 0
         print 'tcp_check: ', tcp_check
         return TCPSeg(tcp_seq=tcp_seq, 
             tcp_source=tcp_source, 

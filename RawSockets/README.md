@@ -5,9 +5,11 @@
 in my case, eno16777736 is the second MAC address in the array, change accordingly
 
 # Run these three lines first:
- ```sudo ethtool --offload [network interface name] rx off tx off```
- ```sudo ethtool -K [network interface name] gso off```
- ```sudo ethtool -K [network interface name] gro off```
+ ```
+ sudo ethtool --offload [network interface name] rx off tx off
+ sudo ethtool -K [network interface name] gso off
+ sudo ethtool -K [network interface name] gro off
+ ```
 
 # High Level Approach:
 In this project, the goal is to implement low-level operations of the Internet protocol stack with our own OSI model,
@@ -100,7 +102,9 @@ We implemented the Data Link Layer by wrapping the two raw sockets, one for send
 5. When calculating the check sum, initially, we didn't have the pseudo-header, so the check sum logic was not correct
 6. There might be option fields in TCP and IP headers. We have to discover them and remove them
 7. The checksum of TCP during recv is not correct. It turned out to be the TCP checksum offloading. We fixed it by running
- ```sudo ethtool --offload [network interface name] rx off tx off```
- ```sudo ethtool -K [network interface name] gso off```
- ```sudo ethtool -K [network interface name] gro off```
+```
+ sudo ethtool --offload [network interface name] rx off tx off
+ sudo ethtool -K [network interface name] gso off
+ sudo ethtool -K [network interface name] gro off
+```
 8. Have to get the data link protocol exactly right during Ethernet frame assembling

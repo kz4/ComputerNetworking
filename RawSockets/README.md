@@ -103,10 +103,10 @@ We implemented the Data Link Layer by wrapping the two raw sockets, one for send
  part up to the chuck length and keeps repeating
 5. When calculating the check sum, initially, we didn't have the pseudo-header, so the check sum logic was not correct
 6. There might be option fields in TCP and IP headers. We have to discover them and remove them
-7. The checksum of TCP during recv is not correct. It turned out to be the TCP checksum offloading. We fixed it by running
+7. Have to get the data link protocol exactly right during Ethernet frame assembling
+8. The checksum of TCP during recv is not correct. It turned out to be the TCP checksum offloading. We fixed it by running
 ```
  sudo ethtool --offload [network interface name] rx off tx off
  sudo ethtool -K [network interface name] gso off
  sudo ethtool -K [network interface name] gro off
 ```
-8. Have to get the data link protocol exactly right during Ethernet frame assembling

@@ -1,8 +1,10 @@
 # Warning:
 1. The network interface on our machine is ```eno16777736```, but I noticed most of other network interface is ```eth0```, please change accordingly. Use ifconfig to see all your network interface names
 2. In datalink.py line 191,
-```return mac_addresses[1].replace(":", "")```
-in my case, eno16777736 is the second MAC address in the array, change accordingly
+```
+return mac_addresses[1].replace(":", "")
+```
+in my case, ```eno16777736``` is the second MAC address in the array, change accordingly
 
 # Run these three lines first:
  ```

@@ -19,7 +19,6 @@ def get_destination_components_ip(url):
 
         # Get destination IP
         destination_ip = socket.gethostbyname(components.netloc)
-        print 'components:', components
         return components, destination_ip
     except Exception, e:
         print e, "Program exit."

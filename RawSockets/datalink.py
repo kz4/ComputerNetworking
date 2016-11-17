@@ -12,7 +12,6 @@ from collections import namedtuple
 ETHER_DEST_MAC_ADDR = 'FFFFFFFFFFFF'
 ARP_RECV_HW_ADDR = '000000000000'
 PAGE_SIZE = 4096
-ARP_PROTO = 0x0806
 # the default ethernet interface is eth0
 NET_INTERFACE = 'eno16777736'
 # arp format constant
@@ -37,12 +36,10 @@ class Datalink:
         self.send_sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
         self.recv_sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
 
-    def assemble_ether_packet(self, src_mac_addr, dest_mac_addr, data):
+    def assemble_ether_packet(self, src_mac_addr, dest_mac_addr, data, ether_type=0x800):
         '''
         Build Ethernet Packet
         '''
-        # Default ethernet type is 0x800
-        ether_type = 0x800
         src = binascii.unhexlify(src_mac_addr)
         dest = binascii.unhexlify(dest_mac_addr)
         header = struct.pack(ETHER_FORMAT, dest, src, ether_type)
@@ -56,10 +53,10 @@ class Datalink:
         [dest_mac_addr, src_mac_addr, ethernet_type] = struct.unpack(ETHER_FORMAT, ether_packet[:14])
         dest_mac_addr = binascii.hexlify(dest_mac_addr)
         src_mac_addr = binascii.hexlify(src_mac_addr)
-        
+
         # Get the payload of the packet
         data = ether_packet[14:]
-	
+
         return ETHERSeg(dest_mac_addr=dest_mac_addr, src_mac_addr=src_mac_addr, ethernet_type=ethernet_type, data=data)
 
     def assemble_arp_packet(self, send_hw_addr, send_proto_addr, recv_hw_addr, recv_proto_addr):
@@ -70,7 +67,7 @@ class Datalink:
         hw_type = 1
         # type of protocol, default is ip
         proto_type = 0x800
-        # length of hardware address 
+        # length of hardware address
         hw_addr_len = 6
         # length of ip address
         proto_addr_len = 4
@@ -100,14 +97,14 @@ class Datalink:
         send_proto_addr = socket.inet_ntoa(bin_SPA)
         recv_proto_addr = socket.inet_ntoa(bin_RPA)
 
-	return ARPSeg(hw_type=hw_type, 
-		proto_type=proto_type, 
-		hw_addr_len=hw_addr_len, 
-		proto_addr_len=proto_addr_len, 
-		op=op, 
-		send_hw_addr=send_hw_addr, 
-		recv_hw_addr=recv_hw_addr, 
-		send_proto_addr=send_proto_addr, 
+	return ARPSeg(hw_type=hw_type,
+		proto_type=proto_type,
+		hw_addr_len=hw_addr_len,
+		proto_addr_len=proto_addr_len,
+		op=op,
+		send_hw_addr=send_hw_addr,
+		recv_hw_addr=recv_hw_addr,
+		send_proto_addr=send_proto_addr,
 		recv_proto_addr=recv_proto_addr)
 
     def connect(self):
@@ -123,21 +120,21 @@ class Datalink:
         '''
         # build raw socket
         temp_send_sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
-        temp_recv_sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ARP_PROTO))
+        temp_recv_sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0806))
 
         # get the ip and mac addresses
-	src_ip = self.source_ip
+        src_ip = self.source_ip
         src_mac = self.get_src_mac_addr(NET_INTERFACE)
         self.src_mac = src_mac
 
         # Build an ARP packet to do broadcast
-	arp_req_pkt = self.assemble_arp_packet(src_mac, src_ip, ARP_RECV_HW_ADDR, dest_ip)
+        arp_req_pkt = self.assemble_arp_packet(src_mac, src_ip, ARP_RECV_HW_ADDR, dest_ip)
 
         # Build an Ethernet packet based on the ARP packet
-	ether_req_pkt = self.assemble_ether_packet(src_mac, ETHER_DEST_MAC_ADDR, arp_req_pkt)
+        ether_req_pkt = self.assemble_ether_packet(src_mac, ETHER_DEST_MAC_ADDR, arp_req_pkt, 0x0806)
 
         # Send packet to get Destination MAC Address
-	temp_send_sock.sendto(ether_req_pkt, (NET_INTERFACE, 0))
+        temp_send_sock.sendto(ether_req_pkt, (NET_INTERFACE, 0))
 
         # Loop to parse data from received raw packets
         while True:
@@ -157,7 +154,7 @@ class Datalink:
         temp_send_sock.close()
         temp_recv_sock.close()
 
-        # Found the address and return 
+        # Found the address and return
         return arp_res_pkt.send_hw_addr
 
     def get_gateway_ip(self):
@@ -188,9 +185,10 @@ class Datalink:
 
         # Get the mac address in the ifconfig info
         mac_addresses = re.findall("HWaddr (.*?) ", ip_config)
+        print 'mac_addresses: ', mac_addresses
 
         # remove all the ':' in the result
-        return mac_addresses[0].replace(":", "")
+        return mac_addresses[1].replace(":", "")
 
     def send(self, raw_packet):
         '''
@@ -205,8 +203,6 @@ class Datalink:
                 self.gateway_mac = self.get_gtwy_mac_addr(self.get_gateway_ip())
             except:
                 print 'ARP Fails, can not find mac address'
-		traceback.print_exc()
-                sys.exit(0)
 
         # Set the dest mac address as the mac address of gateway
         self.dest_mac = self.gateway_mac
@@ -221,7 +217,7 @@ class Datalink:
         '''
         Receive Packet to Disassemble and Send to Upper Layer
         '''
-        # Loop to keep receiving, until received all 
+        # Loop to keep receiving, until received all
         while True:
             # Get the data in size of one page size by raw socket
             try:
@@ -238,5 +234,5 @@ class Datalink:
                 return pkt.data
 
     def close_all(self):
-	self.send_sock.close()
-	self.recv_sock.close()
+    	self.send_sock.close()
+    	self.recv_sock.close()

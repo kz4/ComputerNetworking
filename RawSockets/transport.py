@@ -235,6 +235,7 @@ class Tcp(object):
 
         if not tcp_seg or not (tcp_seg.tcp_flags & FIN):
             print "Close connection failed"
+            self.initiates_close_connection()
             sys.exit(1)
 
         self._send(flags=ACK)

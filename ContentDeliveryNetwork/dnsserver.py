@@ -58,7 +58,10 @@ class MyDNSHandler(SocketServer.BaseRequestHandler):
 
         packet = Packet()
         packet.unpackPacket(data)
-        
+
+        print 'server name: ', self.server.name
+        print 'packet.q_name: ', packet.q_name
+        print 'packet.q_type: ', packet.q_type
         if packet.q_type == 1 and packet.q_name == self.server.name:
             print "DEBUG: Should reply to: " + str(self.client_address)
             ip = self.select_best_replica(self.client_address)

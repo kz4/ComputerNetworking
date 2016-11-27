@@ -28,7 +28,7 @@ class MyHTTPHandler(BaseHTTPRequestHandler):
 				self.download_from_origin(self.path, response)
 
 		# Read cached file from local file
-		with open(os.pardir + self.path) as request_page:
+		with open(os.getcwd() + self.path) as request_page:
 			self.send_response(200)
 			self.send_header('Content-type', 'text/plain')
 			self.end_headers()
@@ -37,17 +37,27 @@ class MyHTTPHandler(BaseHTTPRequestHandler):
 		# Update the cache using LRU
 
 	def download_from_origin(self, path, response):
-		filename = os.pardir + path
+		filename = os.getcwd() + self.path
 		directory = os.path.dirname(filename)
-		print filename
-		
-		if not os.path.exists(directory):
-			os.makedirs(directory)
+		print 'directory: ', directory
+		print 'filename: ', filename
+		print 'os.getcwd():', os.getcwd()
 
-		f = open(filename, 'w')
-		f.write(response.read())
-		self.cache.append(path)
-		print len(self.cache)
+		if not os.path.exists(directory):
+			try:
+				os.makedirs(directory)
+			except:
+				print "Can not make dir, exceed memory size limit"
+
+		try:
+			# Handle write exception
+			f = open(filename, 'w')
+			f.write(response.read())
+
+			if self.path not in self.cache:
+				self.cache.append(path)
+		except IOError as ue:
+			print 'Can not write, Wiki folder exceed memory size limit'
 
 def get_information(argv):
 	if (len(argv) != 5):

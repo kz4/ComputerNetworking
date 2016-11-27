@@ -78,7 +78,7 @@ class DNSServer(SocketServer.UDPServer):
 
 def getPortAndName(argv):
     if len(argv) != 5 or argv[1] != "-p" or argv[3] != "-n":
-        sys.exit("Usage: ./dnsserver -p [port] -s [name]")
+        sys.exit("Usage: ./dnsserver -p [port] -n [name]")
     port = int(argv[2])
     name = argv[4]
 

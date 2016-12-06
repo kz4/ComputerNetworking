@@ -1,55 +1,71 @@
+import commands
 import socket
-import json
+import SocketServer
+import time
 
-class PingServer(object):
-    def __init__(self, port):
-        # Socket used to communicate RTT with Map (map.py)
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+MEASUREMENT_PORT = 60532
+
+
+def get_connection_time(ip_address):
+    """
+    measure TCP connection time
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    start = time.time()
+    try:
+        sock.connect((ip_address, 22))
+    except socket.error:
+        res = 'inf'
+    else:
+        end = time.time()
+        res = str((end - start) * 1000)
+    finally:
+        sock.close()
+    return res
+
+
+def get_latency(ip_address):
+    """
+    extract average time from ping -c
+    scamper -c 'ping -c 1 -P tcp-ack -d 49999' -i 54.84.248.26
+    """
+    # cmd = "scamper -c 'ping -c 1 -P tcp-ack -d 22' -i " + ip_address + " |awk 'NR==2 {print $8}'|cut -d '=' -f 2"
+    cmd = "scamper -c 'ping -c 1' -i " + ip_address + " |awk 'NR==2 {print $7}'|cut -d '=' -f 2"
+    res = commands.getoutput(cmd)
+    if not res:
+        res = 'inf'
+    return res
+
+
+class MeasureHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        target_ip = self.request.recv(1024).strip()
+        print '[DEBUG]Client address: %s' % target_ip
+        avg_time = get_latency(target_ip)
+        # avg_time = get_connection_time(target_ip)
+        print '[DEBUG]Latency: %s' % avg_time
+        self.request.sendall(avg_time)
+
+        # def handle(self):
+        # target_ip = self.request[0].strip()
+        #     sock = self.request[1]
+        #     # avg_time = get_latency(target_ip)
+        #     avg_time = get_connection_time(target_ip)
+        #     print '[DEBUG]latency' + avg_time
+        #     sock.sendto(avg_time, self.client_address)
+
+
+class MeasurementServer:
+    def __init__(self, port=MEASUREMENT_PORT):
         self.port = port
-        # self.sock.settimeout(1)
-        # TODO: Change 52.4.98.110 (EC2 IP) to server's own IP
-        # self.ip = '54.210.1.206'
-        # self.ip = '129.10.106.91'
-        # self.ip = '54.167.4.20' #original EC2
-        # self.ip = '129.10.117.186' # cs5700cdnproject.ccs.neu.edu
-        self.ip = '' # cs5700cdnproject.ccs.neu.edu
 
-        self.sock.bind((self.ip, port))
+    def start(self):
+        # server = SocketServer.UDPServer(('', self.port), MeasureHandler)
+        server = SocketServer.TCPServer(('', self.port), MeasureHandler)
+        server.serve_forever()
 
-    def run(self):
-        while True:
-            # clientIpTimeSpanJson = json.dumps({'PingRequest': \
-            #                           {'ClientIps' : clientIpMap.keys(), \
-            #                           'TimeSpan' : time.time(), 'ReplicaIp' : self.ip}})
-            reqJson, replicaIp = self.sock.recvfrom(1024)
-            print 'reqJson, replicaIp: ', reqJson, replicaIp
-            res = json.loads(resJson)
-            if res.has_key('PingRequest') and res['PingRequest']['ReplicaIp'] == self.ip:
-                clientIps = res['PingRequest']['ClientIps']
-                resultDict = {}
-                for clientIp in clientIps:
-                    rtt = getPingTime(clientIp)
-                    print 'clientIp: ', clientIp
-                    print 'rtt: ', rtt
-                    if rtt:
-                        resultDict[clientIp] = rtt
-                self.sendPingResult(resultDict)
-
-    def sendPingResult(self, resultDict):
-        resultJson = json.dumps({'PingResult' : {'PingTimeDict' : resultDict}})
-        self.sock.sendto(resultJson, (self.ip, self.port))
-        print 'finish sending in PingServer'
-
-    def getPingTime(self, clientIp):
-        command = "scamper -c 'ping -c 1' -i " + clientIp + " | grep 'time='"
-        outputs = os.popen(command).read()
-        print outputs
-        if outputs.find('time='):
-            m = re.search('time=([0-9]*.[0-9]*)', outputs)
-            if m:
-                return float(m.group(1))
-        return None
 
 if __name__ == '__main__':
-    pingServer = PingServer(55555)
-    pingServer.run()
+    measure_server = MeasurementServer()
+    measure_server.start()

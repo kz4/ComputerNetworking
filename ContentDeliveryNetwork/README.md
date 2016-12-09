@@ -1,3 +1,64 @@
+# Execution Instruction for EC2:
+Deploy script:
+```
+./deployCDN -u kz4 -i id_rsa_1
+```
+Run script:
+```
+./runCDN -u kz4 -i id_rsa_1 -p 55558 -n cs5700cdn.example.com -o www.wikipedia.org
+```
+Stop script:
+```
+./stopCDN -u kz4 -i id_rsa_1
+```
+
+1. Find the fast RTT IP by doing a dig: (DNS server IP: 129.10.117.186)
+```
+dig @129.10.117.186 cs5700cdn.example.com -p 55558
+```
+
+Sample response:
+```
+; <<>> DiG 9.8.3-P1 <<>> @129.10.117.186 cs5700cdn.example.com -p 55558
+
+; (1 server found)
+
+;; global options: +cmd
+
+;; Got answer:
+
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 11632
+
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+
+
+;; QUESTION SECTION:
+
+;cs5700cdn.example.com.	IN	A
+
+
+
+;; ANSWER SECTION:
+
+cs5700cdn.example.com.	60	IN	A	54.210.1.206
+
+
+
+;; Query time: 1633 msec
+
+;; SERVER: 129.10.117.186#55558(129.10.117.186)
+
+;; WHEN: Thu Dec  8 23:03:18 2016
+
+;; MSG SIZE  rcvd: 55
+```
+
+2. Download from the IP given from dig response:
+```
+wget http://54.210.1.206:55558/wiki/science
+```
+
 # Execution Instruction for localhost:
 1. HTTP Server:
 If httpserver is not an executable file, do chmod +x httpserver

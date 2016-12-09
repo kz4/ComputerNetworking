@@ -4,27 +4,25 @@ import socket
 import threading
 import urllib2
 
-# hostnames = ['ec2-54-84-248-26.compute-1.amazonaws.com',
-#              'ec2-54-186-185-27.us-west-2.compute.amazonaws.com',
-#              'ec2-54-215-216-108.us-west-1.compute.amazonaws.com',
-#              'ec2-54-72-143-213.eu-west-1.compute.amazonaws.com',
-#              'ec2-54-255-143-38.ap-southeast-1.compute.amazonaws.com',
-#              'ec2-54-199-204-174.ap-northeast-1.compute.amazonaws.com',
-#              'ec2-54-206-102-208.ap-southeast-2.compute.amazonaws.com',
-#              'ec2-54-207-73-134.sa-east-1.compute.amazonaws.com']
-# hostnames = ['login.ccs.neu.edu', 'cs5700cdnproject.ccs.neu.edu']
+hostnames = ['ec2-54-210-1-206.compute-1.amazonaws.com',
+                'ec2-54-67-25-76.us-west-1.compute.amazonaws.com',
+                'ec2-35-161-203-105.us-west-2.compute.amazonaws.com',
+                'ec2-52-213-13-179.eu-west-1.compute.amazonaws.com',
+                'ec2-52-196-161-198.ap-northeast-1.compute.amazonaws.com',
+                'ec2-54-255-148-115.ap-southeast-1.compute.amazonaws.com',
+                'ec2-13-54-30-86.ap-southeast-2.compute.amazonaws.com',
+                'ec2-52-67-177-90.sa-east-1.compute.amazonaws.com',
+                'ec2-35-156-54-135.eu-central-1.compute.amazonaws.com']
 
-hostnames = ['ec2-54-210-1-206.compute-1.amazonaws.com']
-
-MAP = {  # '54.85.79.138': (39.0437, -77.4875),
-         '54.215.216.108': (37.7749, -122.419),
-         '54.206.102.208': (-33.8679, 151.207),
-         '54.199.204.174': (35.6895, 139.692),
-         '54.84.248.26': (39.0437, -77.4875),
-         '54.207.73.134': (-23.5475, -46.6361),
-         '54.72.143.213': (53.344, -6.26719),
-         '54.186.185.27': (45.5234, -122.676),
-         '54.255.143.38': (1.28967, 103.85)}
+MAP = {'54.210.1.206': (39.0481, -77.4728),
+        '54.67.25.76': (37.3388, -121.8914),
+        '35.161.203.105': (45.8696, -119.6880),
+        '52.213.13.179': (53.3389, -6.2595),
+        '52.196.161.198': (35.6427, 139.7677),
+        '54.255.148.115': (1.2855, 103.8565),
+        '13.54.30.86': (-33.8612, 151.1982),
+        '52.67.177.90': (-23.5464, -46.6289),
+        '35.156.54.135': (50.1167, 8.6833)}
 
 KEY = '77e206c91186da6b8c7e8a2b2f06936c590b5bce9d6162356a83c58b0dbc96ac'
 URL = 'http://api.ipinfodb.com/v3/ip-city/?key=' + KEY + '&ip='

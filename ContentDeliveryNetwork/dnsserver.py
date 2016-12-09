@@ -4,7 +4,7 @@ import struct
 import socket
 # import constants
 import json
-from testDelay import select_replica
+from map import select_replica
 
 class Packet():
     def buildPacket(self, ip):

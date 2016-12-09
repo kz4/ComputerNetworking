@@ -1,10 +1,9 @@
-# Execution Instruction for EC2:
+# Execution Instruction:
 1. Deploy script: (id_rsa_1 is the private key)
 ```
 ./deployCDN -u kz4 -i id_rsa_1
 ```
-2. Run script: (port can be choosen from 40000-65535; cs5700cdn.example.com is the name, can use anything;
-www.wikipedia.org is the host where we want to download things from)
+2. Run script: (port can be choosen from 40000-65535; cs5700cdn.example.com is the name, can use anything; www.wikipedia.org is the host where we want to download things from)
 ```
 ./runCDN -u kz4 -i id_rsa_1 -p 55558 -n cs5700cdn.example.com -o www.wikipedia.org
 ```
@@ -80,26 +79,56 @@ If dnsserver is not an executable file, do chmod +x httpserver
 dig @localhost <name> -p <port> [e.g. name = cs5700cdn.example.com, port = 50000]
 ```
 
-# High-Level Approach
+# High-Level Approach (Design Decisions)
 1. Http Server
-We applied the BaseHTTPServer library in Python to do corresponding job for the GET request from the client,
- and return the information downloaded from the original server to the client. LRU cache method was applied to enhance
- the performance, as the storage was assume to be limited relative to the size of the information we are requested to
- download.
+We applied the BaseHTTPServer library in Python to do corresponding job for the GET request from the client, and return the information downloaded from the original server to the client. LFU cache method was applied to enhance the performance, as the storage was assume to be limited relative to the size of the information we are requested to download.
 
 2. DNS Server
-We implemented the receiving and sending DNS packet by using socketServer. We also implemented the function of packing
- and unpacking DNS packet.
+We implemented the receiving and sending DNS packet with the UDP socket by using socketServer. We also implemented the function of packing and unpacking DNS packet. Each request from client with the client IP will be sent to the Map class, which sort the priority of CDN server by active calculated ping time from each server to the client, or by passive geolocation calculation, or random method. The matched server IP will be return for the client dig request.
 
-# Performance Enhancement Approaches
+The design can be view as following:
+
+             |————————————|                                 |——————————|
+             | DNS Server |                ||               | REPLICAS |
+             |————————————|                ||               |——————————|
+                    |                      ||                     |
+         |—————————————————————|           ||          |————————————————————|
+  |————————————|           |————————|      ||   |—————————————|       |—————————————|
+  | dnserver.py|           | map.py |      ||   |pingServer.py|       |httpserver.py|
+  |————————————|           |————————|      ||   |—————————————|       |—————————————|
+       | ^  (2)Best Replica                ||                           ^ |     ^ |
+       | |  ——————————————————>            ||                        (9)| |(8)  | |
+       | |    for Client IP                ||                           |\|/    | |
+       | |                      (3) Request Ping Time                |———————|  | |
+       | |                      ——————————————————————>              |from   |  | |
+       | |                          (4) Ping Time                    |Cache  |  | |
+       | |                      <——————————————————————              |or     |  | |
+       | |   (5) Replica IP                ||                        |Origin |  | |
+       | |  <——————————————————            ||                        |———————|  | |
+       | |                                 ||                                   | |
+       | |                                 ||                                   | |
+       | |    (1) dig request                        (7) wget request           | |
+       | |-———————————————————————————|—————————|———————————————————————————————| |
+       |      (6) dig response        |  Client |    (10) wget content            |
+       |—————————————————————————————>|—————————|—————————————————————————————————|
+
+
+# Performance Enhancement Approaches (Design Decisions)
 1. Cache Management
-As we have the assumption that the replica server will have limited disk quota, thus it is necessary to implement an
- effective cache management strategy to cache the downloaded materials. We applied the LRU(Least Recently Used)
- strategy, in which the least recently used item will be discarded firstly.
+As we have the assumption that the replica server will have limited disk quota, thus it is necessary to implement an effective cache management strategy to cache the downloaded materials. We applied the firstly implemented LRU(Least Recently Used) strategy, in which the least recently used item will be discarded firstly. At the end, we switch to LFU(Least  Frequently Used) strategy, in which the least frequently used item will be discarded firstly. Because LFU can provide less page fault[1], and fit our purpose better.
+
+2. Latency Measurement
+To locate the server with the lowest latency, we implemented both active measurements and passive measurements by IP geolocations. For the active measurement, we send request with client IP by TCP socket to each server, and each is wrapped with a thread. Each server can act as a ping server, which takes ping request, and use scamper to measure the ping time between its IP and the client, and send the result back. The result will be sorted, and the one with the shortest latency will be returned. For each request, if the active measurement failed for any reason, such as timeout of the socket, we will return result by passive measurement. For the passive measurement, we calculate the distance between each server and the client IP, and take the closest server as result.
+
+# Efficiency Measurements
+1. We implements a test by script, and run it on local machine as client, which loop O(100) times to dig and wget random page from a certain site (e.g. original server is www.wikipedia.com and we use path as /wiki/Special:Random) to calculate the reliability and average download time.
+2. We also test cache by downloading large files.
 
 # Challenges
-1. We spent a lot of time on exploring the big picture of the whole project, such as the working mechanism of the Http
- Server and DNS Server.
-2. The cache management method is a big and important decision for us. For now, we use the LRU cache method, however,
- for the future work, we are going to compare the LRU and LFU cache method respectively and utilize the one with better
- performance.
+1. We spent a lot of time on exploring the big picture of the whole project, such as the working mechanism of the Http Server and DNS Server.
+2. For active measurements, we utilized TCP socket by socket server to communicate between DNS and CDN servers, and we use multi-thread pattern to do communication. It took us a plenty of time to debug and finally reach a working version of this part.
+3. As we were not familiar with script, we spent a lot of time on developing deploy/run/stop CDN, especially for the keyfile in ssh. It is important to set up everything correctly on each machine.
+
+# Future Work and Possible Improvements
+1. The cache management method is a big and important decision for us. According to papers and discussion on Internet, we switched from LRU to LFU, however, for the future work, we are going to compare the LRU and LFU cache method respectively by ourselves and utilize the one with better performance.
+2. For active measurement, we can further improve the measurement, which support measurement for mapping multiple frequently request client to servers, and the communication with each server can be wrapped in a thread with infinite loop with sleep time of 2 seconds. Each loop will get a set of ping result from that server to every client in the client list, the map structure (can be dictionary in python) will be locked to be updated according to the result. Then the map will be kept up-to-date and each request from these client can be mapped much faster by using this method.

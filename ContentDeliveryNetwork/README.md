@@ -1,15 +1,12 @@
 # Execution Instruction for localhost:
 1. HTTP Server:
 If httpserver is not an executable file, do chmod +x httpserver
-```
 
+```
 ./httpserver -p <port> -o <url> [e.g. port = 51111, url = www.wikipedia.org]
-
 ```
 ```
-
 wget http://localhost:<port><path> [e.g. port = 51111, path = /wiki/science]
-
 ```
 
 2. DNS Server:

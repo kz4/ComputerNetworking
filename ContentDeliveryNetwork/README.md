@@ -87,6 +87,7 @@ We applied the BaseHTTPServer library in Python to do corresponding job for the 
 We implemented the receiving and sending DNS packet with the UDP socket by using socketServer. We also implemented the function of packing and unpacking DNS packet. Each request from client with the client IP will be sent to the Map class, which sort the priority of CDN server by active calculated ping time from each server to the client, or by passive geolocation calculation, or random method. The matched server IP will be return for the client dig request.
 
 The design can be view as following:
+```
 
              |————————————|                                 |——————————|
              | DNS Server |                ||               | REPLICAS |
@@ -111,7 +112,7 @@ The design can be view as following:
        | |-———————————————————————————|—————————|———————————————————————————————| |
        |      (6) dig response        |  Client |    (10) wget content            |
        |—————————————————————————————>|—————————|—————————————————————————————————|
-
+```
 
 # Performance Enhancement Approaches (Design Decisions)
 1. Cache Management

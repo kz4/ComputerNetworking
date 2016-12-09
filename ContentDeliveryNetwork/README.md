@@ -1,23 +1,24 @@
 # Execution Instruction for EC2:
-Deploy script:
+1. Deploy script: (id_rsa_1 is the private key)
 ```
 ./deployCDN -u kz4 -i id_rsa_1
 ```
-Run script:
+2. Run script: (port can be choosen from 40000-65535; cs5700cdn.example.com is the name, can use anything;
+www.wikipedia.org is the host where we want to download things from)
 ```
 ./runCDN -u kz4 -i id_rsa_1 -p 55558 -n cs5700cdn.example.com -o www.wikipedia.org
 ```
-Stop script:
+3. Stop script:
 ```
 ./stopCDN -u kz4 -i id_rsa_1
 ```
 
-1. Find the fast RTT IP by doing a dig: (DNS server IP: 129.10.117.186)
+4. Find the fast RTT IP by doing a dig: (DNS server IP: 129.10.117.186)
 ```
 dig @129.10.117.186 cs5700cdn.example.com -p 55558
 ```
 
-Sample response:
+5. Find the IP of replica where we want to download from in the dig response:
 ```
 ; <<>> DiG 9.8.3-P1 <<>> @129.10.117.186 cs5700cdn.example.com -p 55558
 
@@ -54,12 +55,12 @@ cs5700cdn.example.com.	60	IN	A	54.210.1.206
 ;; MSG SIZE  rcvd: 55
 ```
 
-2. Download from the IP given from dig response:
+6. Download from the IP given from dig response:
 ```
 wget http://54.210.1.206:55558/wiki/science
 ```
 
-# Execution Instruction for localhost:
+# Execution Instruction for localhost: (For milestone)
 1. HTTP Server:
 If httpserver is not an executable file, do chmod +x httpserver
 

@@ -11,9 +11,12 @@ wget http://localhost:<port><path> [e.g. port = 51111, path = /wiki/science]
 
 2. DNS Server:
 If dnsserver is not an executable file, do chmod +x httpserver
+```
 ./dnsserver -p <port> -n <name> [e.g. port = 50000, name = cs5700cdn.example.com (can be anything)]
+```
+```
 dig @localhost <name> -p <port> [e.g. name = cs5700cdn.example.com, port = 50000]
-
+```
 
 # High-Level Approach
 1. Http Server

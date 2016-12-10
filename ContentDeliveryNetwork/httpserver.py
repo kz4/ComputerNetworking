@@ -28,6 +28,7 @@ class MyHTTPHandler(BaseHTTPRequestHandler):
             print "cache:", self.cache
 
         # Read cached file from local file
+        print 'os.getcwd() + self.path: ', os.getcwd() + self.path
         with open(os.getcwd() + self.path) as request_page:
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
@@ -63,12 +64,13 @@ class MyHTTPHandler(BaseHTTPRequestHandler):
                 print "Can not make dir, exceed memory size limit"
 
         try:
-            response_size = int(len(response.read()))
+            content = response.read()
+            response_size = int(len(content))
             # Insert the new path in LFU cache
             if response_size <= MAX_SIZE:
                                 self.cache.insert(self.path, response_size)
             f = open(filename, 'w')
-            f.write(response.read())
+            f.write(content)
         # Handle write exception
         except IOError as ue:
             print 'Can not write, Wiki folder exceed memory size limit'

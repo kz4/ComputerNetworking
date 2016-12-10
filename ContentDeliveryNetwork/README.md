@@ -5,7 +5,7 @@
 ```
 2) Run script: (port can be choosen from 40000-65535; cs5700cdn.example.com is the name, can use anything; www.wikipedia.org is the host where we want to download things from)
 ```
-./runCDN -u kz4 -i id_rsa_1 -p 55558 -n cs5700cdn.example.com -o www.wikipedia.org
+./runCDN -u kz4 -i id_rsa_1 -p 55558 -n cs5700cdn.example.com -o ec2-54-167-4-20.compute-1.amazonaws.com
 ```
 3) Stop script:
 ```

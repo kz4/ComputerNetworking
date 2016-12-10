@@ -65,8 +65,8 @@ class MyDNSHandler(SocketServer.BaseRequestHandler):
         if packet.q_type == 1 and packet.q_name == self.server.name:
             print "[DEBUG]Should reply to: " + str(self.client_address)
             print 'self.client_address[0]: ', self.client_address[0]
-            findBestReplica = FindBestReplica('129.10.117.186')
-            # findBestReplica = FindBestReplica(self.client_address[0])
+            # findBestReplica = FindBestReplica('129.10.117.186')
+            findBestReplica = FindBestReplica(self.client_address[0])
             ip = findBestReplica.find_replica()
             print 'ip: ', ip
             response = packet.buildPacket(ip)

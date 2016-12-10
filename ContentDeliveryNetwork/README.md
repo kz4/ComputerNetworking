@@ -12,7 +12,7 @@
 ./stopCDN -u kz4 -i id_rsa_1
 ```
 
-4) Find the fast RTT IP by doing a dig: (DNS server IP: 129.10.117.186)
+4) Find the fast RTT IP by doing a dig: (DNS server IP: 129.10.117.186, we can also use cs5700cdnproject.ccs.neu.edu)
 ```
 dig @129.10.117.186 cs5700cdn.example.com -p 55558
 ```

@@ -14,7 +14,7 @@ hostnames = ['ec2-54-210-1-206.compute-1.amazonaws.com',
                 'ec2-52-67-177-90.sa-east-1.compute.amazonaws.com',
                 'ec2-35-156-54-135.eu-central-1.compute.amazonaws.com']
 
-MAP = {'54.210.1.206': (39.0481, -77.4728),
+ip_location = {'54.210.1.206': (39.0481, -77.4728),
         '54.67.25.76': (37.3388, -121.8914),
         '35.161.203.105': (45.8696, -119.6880),
         '52.213.13.179': (53.3389, -6.2595),
@@ -56,77 +56,77 @@ class TestThread(threading.Thread):
         with self.lock:
             dic.update({ip: float(latency)})
 
+class FindBestReplica(object):
+    def __init__(self, clientIp):
+        self.clientIp = clientIp
 
-def sort_replica_act(target_ip):
-    """
-    Sort replica server using active measurement
-    """
-    lock = threading.Lock()
-    threads = []
+    def find_replica(self):
+        if self._is_private(self.clientIp):
+            return '54.84.248.26'
+        result = self._sort_replica_act(self.clientIp)
+        if len(set(result.values())) <= 1:
+            result = self._sort_replica_geo(self.clientIp)
+        sorted_result = sorted(result.items(), key=lambda e: e[1])
+        return sorted_result[0][0]
 
-    for i in range(len(hostnames)):
-        t = TestThread(hostnames[i], target_ip, lock)
-        t.start()
-        threads.append(t)
+    def _sort_replica_act(self, target_ip):
+        """
+        Sort replica server using active measurement
+        """
+        lock = threading.Lock()
+        threads = []
 
-    # Wait for all threads to complete
-    for t in threads:
-        t.join()
+        for i in range(len(hostnames)):
+            t = TestThread(hostnames[i], target_ip, lock)
+            t.start()
+            threads.append(t)
 
-    print '[DEBUG]Sorted Replica Server:', dic
-    return dic
+        # Wait for all threads to complete
+        for t in threads:
+            t.join()
 
-
-def sort_replica_geo(target_ip):
-    """
-    Sort replica server based on GeoLocation
-    """
-
-    def get_location(_ip):
-        res = urllib2.urlopen(URL + _ip)
-        loc_info = res.read().split(';')
-        return float(loc_info[8]), float(loc_info[9])
-
-    def get_distance(target, src):
-        return math.sqrt(reduce(lambda x, y: x + y,
-                                map(lambda x, y: math.pow((x - y), 2), target, src), 0))
-
-    distance = {}
-    for ip in MAP.keys():
-        distance[ip] = 0
-    target_address = get_location(target_ip)
-    for ip, loc in MAP.iteritems():
-        distance[ip] = get_distance(target_address, loc)
-
-    print '[DEBUG]Sorted Replica Server:', distance
-    return distance
+        print '[DEBUG]Sorted Replica Server:', dic
+        return dic
 
 
-def is_private(ip):
-    f = unpack('!I', socket.inet_pton(socket.AF_INET, ip))[0]
-    private = (
-        [2130706432, 4278190080],  # 127.0.0.0,   255.0.0.0
-        [3232235520, 4294901760],  # 192.168.0.0, 255.255.0.0
-        [2886729728, 4293918720],  # 172.16.0.0,  255.240.0.0
-        [167772160, 4278190080],  # 10.0.0.0,    255.0.0.0
-    )
-    for net in private:
-        if f & net[1] == net[0]:
-            return True
-    return False
+    def _sort_replica_geo(self, target_ip):
+        """
+        Sort replica server based on GeoLocation
+        """
+        def get_location(_ip):
+            res = urllib2.urlopen(URL + _ip)
+            loc_info = res.read().split(';')
+            return float(loc_info[8]), float(loc_info[9])
+
+        def get_distance(target, src):
+            return math.sqrt(reduce(lambda x, y: x + y,
+                        map(lambda x, y: math.pow((x - y), 2), target, src), 0))
+
+        distance = {}
+        for ip in ip_location.keys():
+            distance[ip] = 0
+        target_address = get_location(target_ip)
+        for ip, loc in ip_location.iteritems():
+            distance[ip] = get_distance(target_address, loc)
+
+        print '[DEBUG]Sorted Replica Server:', distance
+        return distance
 
 
-def select_replica(target_ip):
-    if is_private(target_ip):
-        return '54.84.248.26'
-    result = sort_replica_act(target_ip)
-    if len(set(result.values())) <= 1:
-        result = sort_replica_geo(target_ip)
-    sorted_result = sorted(result.items(), key=lambda e: e[1])
-    return sorted_result[0][0]
-
+    def _is_private(self, ip):
+        f = unpack('!I', socket.inet_pton(socket.AF_INET, ip))[0]
+        private = (
+            [2130706432, 4278190080],  # 127.0.0.0,   255.0.0.0
+            [3232235520, 4294901760],  # 192.168.0.0, 255.255.0.0
+            [2886729728, 4293918720],  # 172.16.0.0,  255.240.0.0
+            [167772160, 4278190080],  # 10.0.0.0,    255.0.0.0
+        )
+        for net in private:
+            if f & net[1] == net[0]:
+                return True
+        return False
 
 if __name__ == '__main__':
     print '[DEBUG]Select replica server:'
-    print select_replica('129.10.117.186')
-    # print select_replica('139.82.16.196')
+    findBestReplica = FindBestReplica('129.10.117.186')
+    findBestReplica.find_replica()

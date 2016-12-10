@@ -4,7 +4,7 @@ import struct
 import socket
 # import constants
 import json
-from map import select_replica
+from map import FindBestReplica
 
 class Packet():
     def buildPacket(self, ip):
@@ -64,9 +64,11 @@ class MyDNSHandler(SocketServer.BaseRequestHandler):
 
         if packet.q_type == 1 and packet.q_name == self.server.name:
             print "[DEBUG]Should reply to: " + str(self.client_address)
-            findBestReplica = FindBestReplica(self.client_address[0])
-            findBestReplica.find_replica()
-
+            print 'self.client_address[0]: ', self.client_address[0]
+            findBestReplica = FindBestReplica('129.10.117.186')
+            # findBestReplica = FindBestReplica(self.client_address[0])
+            ip = findBestReplica.find_replica()
+            print 'ip: ', ip
             response = packet.buildPacket(ip)
 
             sock.sendto(response, self.client_address)

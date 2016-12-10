@@ -62,7 +62,7 @@ class FindBestReplica(object):
 
     def find_replica(self):
         if self._is_private(self.clientIp):
-            return '54.84.248.26'
+            return '54.210.1.206'
         result = self._sort_replica_act(self.clientIp)
         if len(set(result.values())) <= 1:
             result = self._sort_replica_geo(self.clientIp)

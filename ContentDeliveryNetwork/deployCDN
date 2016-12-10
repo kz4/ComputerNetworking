@@ -48,6 +48,7 @@ do
     scp -i $keyfile pingServer.py $username@$host:~/scripts/
     scp -i $keyfile httpserver.py $username@$host:~/scripts/
     scp -i $keyfile httpserver $username@$host:~/scripts/
+    scp -i $keyfile lfu.py $username@$host:~/scripts/
 done
 
 dnsserver=cs5700cdnproject.ccs.neu.edu

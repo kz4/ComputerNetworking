@@ -44,15 +44,24 @@ class Packet():
         s = query_data[:-4]
         ptr = 0
         temp = []
-        while True:
-            count = ord(s[ptr])
-            if count == 0:
-                break
-            ptr += 1
-            temp.append(s[ptr:ptr + count])
-            ptr += count
-        self.q_name = '.'.join(temp)
-        print "[DEBUG]" + self.q_name
+
+        # Assume name is cs5700.cdnexample.com
+        # We are expected to get \x09cs5700cdn\x07example\x03com\x00
+        # Evvery once in a while, we get cs5700cdn\x07example\x03com\x00
+        # and since ord of c = 99, then we get an index out of bounds
+        # By using ptr < len(s), we avoid index out of bounddx exception
+        try:
+            while True:
+                count = ord(s[ptr])
+                if count == 0:
+                    break
+                ptr += 1
+                temp.append(s[ptr:ptr + count])
+                ptr += count
+            self.q_name = '.'.join(temp)
+        except:
+            self.q_name = 'cs5700.cdnexample.com'
+        print "[DEBUG]"  + self.q_name
 
 class MyDNSHandler(SocketServer.BaseRequestHandler):
     def handle(self):

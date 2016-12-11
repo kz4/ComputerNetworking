@@ -40,6 +40,7 @@ class TestThread(threading.Thread):
 
     def run(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
         ip = socket.gethostbyname(self.host)
         try:
             sock.connect((ip, MEASUREMENT_PORT))
@@ -47,7 +48,10 @@ class TestThread(threading.Thread):
             # sock.sendto(self.target, (ip, MEASUREMENT_PORT))
             latency = sock.recv(1024)
         except socket.error as e:
-            print '[Error]Connect Measurer' + str(e)
+            print '[EROOR]Connect pingServer ' + str(e)
+            latency = 'inf'
+        except socket.timeout as e:
+            print '[EROOR]Connection time out ' + str(e)
             latency = 'inf'
         finally:
             sock.close()

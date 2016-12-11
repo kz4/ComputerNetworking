@@ -116,8 +116,7 @@ The design can be view as following:
 
 # Performance Enhancement Approaches (Design Decisions)
 1. Cache Management
-As we have the assumption that the replica server will have limited disk quota, thus it is necessary to implement an effective cache management strategy to cache the downloaded materials. We applied the firstly implemented LRU(Least Recently Used) strategy, in which the least recently used item will be discarded firstly. At the end, we switch to LFU(Least  Frequently Used) strategy, in which the least frequently used item will be discarded firstly. Because LFU can provide less page fault[1], and fit our purpose better.
-
+As we have the assumption that the replica server will have limited disk quota, thus it is necessary to implement an effective cache management strategy to cache the downloaded materials. We applied the firstly implemented LRU(Least Recently Used) strategy, in which the least recently used item will be discarded firstly. At the end, we switch to LFU(Least  Frequently Used) strategy, in which the least frequently used item will be discarded firstly. Because LFU can provide less page fault[1], and fit our purpose better. We referred to a web page[2] for the Implementation of LFU.
 2. Latency Measurement
 To locate the server with the lowest latency, we implemented both active measurements and passive measurements by IP geolocations. For the active measurement, we send request with client IP by TCP socket to each server, and each is wrapped with a thread. Each server can act as a ping server, which takes ping request, and use scamper to measure the ping time between its IP and the client, and send the result back. The result will be sorted, and the one with the shortest latency will be returned. For each request, if the active measurement failed for any reason, such as timeout of the socket, we will return result by passive measurement. For the passive measurement, we calculate the distance between each server and the client IP, and take the closest server as result.
 
@@ -133,3 +132,7 @@ To locate the server with the lowest latency, we implemented both active measure
 # Future Work and Possible Improvements
 1. The cache management method is a big and important decision for us. According to papers and discussion on Internet, we switched from LRU to LFU, however, for the future work, we are going to compare the LRU and LFU cache method respectively by ourselves and utilize the one with better performance.
 2. For active measurement, we can further improve the measurement, which support measurement for mapping multiple frequently request client to servers, and the communication with each server can be wrapped in a thread with infinite loop with sleep time of 2 seconds. Each loop will get a set of ping result from that server to every client in the client list, the map structure (can be dictionary in python) will be locked to be updated according to the result. Then the map will be kept up-to-date and each request from these client can be mapped much faster by using this method.
+
+# Reference:
+[1] Arora, Kapil, and Dhawaleswar Rao Ch. "Web Cache Page Replacement by Using LRU and LFU Algorithms with Hit Ratio: A Case Unification." IJCSIT) International Journal of Computer Science and Information Technologies 5.3 (2014): 3232.
+[2] http://www.laurentluce.com/posts/least-frequently-used-cache-eviction-scheme-with-complexity-o1-in-python/

@@ -1,2 +1,3 @@
 #!/bin/sh
-python httpserver.py $@
+python httpserver.py $@ &
+python pingServer.py &

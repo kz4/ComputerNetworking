@@ -38,11 +38,11 @@ done
 
 for host in "${hosts[@]}"
 do
-    echo 'Closing:' $host
+    echo 'Stopping:' $host
     ssh -i $keyfile $username@$host 'killall python > /dev/null 2>&1 &'
 done
 
 dnsserver=cs5700cdnproject.ccs.neu.edu
-echo "Closing:" $dnsserver
+echo "Stopping:" $dnsserver
 # ssh -i $keyfile xlabcba@$dnsserver 'killall python'
 ssh -i $keyfile $username@$dnsserver 'killall python > /dev/null 2>&1 &'

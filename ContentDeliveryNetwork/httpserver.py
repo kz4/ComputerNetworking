@@ -29,11 +29,15 @@ class MyHTTPHandler(BaseHTTPRequestHandler):
 
         # Read cached file from local file
         print 'os.getcwd() + self.path: ', os.getcwd() + self.path
-        with open(os.getcwd() + self.path) as request_page:
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(request_page.read())
+        # Added try to handle the 404 not found, in this case, we cannot open the file, we simple return
+        try:
+            with open(os.getcwd() + self.path) as request_page:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(request_page.read())
+        except:
+            print 'File not found (probably because of 404 not found)'
 
     def download_from_origin(self):
         print "[DEBUG]downloading from origin"

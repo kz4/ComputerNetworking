@@ -68,10 +68,15 @@ class FindBestReplica(object):
         if self._is_private(self.clientIp):
             return '54.210.1.206'
         result = self._sort_replica_act(self.clientIp)
-        if len(set(result.values())) <= 1:
-            result = self._sort_replica_geo(self.clientIp)
-        sorted_result = sorted(result.items(), key=lambda e: e[1])
-        return sorted_result[0][0]
+        finalRes = None
+        try:
+            if len(set(result.values())) <= 1:
+                result = self._sort_replica_geo(self.clientIp)
+            sorted_result = sorted(result.items(), key=lambda e: e[1])
+            finalRes = sorted_result[0][0]
+        except:
+            finalRes = '54.210.1.206'
+        return finalRes
 
     def _sort_replica_act(self, target_ip):
         """

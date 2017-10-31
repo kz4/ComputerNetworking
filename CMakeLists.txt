@@ -3,5 +3,5 @@ project(ComputerNetworking)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
 
-set(SOURCE_FILES SocketBasics/client.c)
+set(SOURCE_FILES 1SocketBasics/client.c)
 add_executable(ComputerNetworking ${SOURCE_FILES})
